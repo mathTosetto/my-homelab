@@ -3,3 +3,6 @@ test-books/
 
 # environment files
 .env
+
+# MacOS files
+.DS_Store
