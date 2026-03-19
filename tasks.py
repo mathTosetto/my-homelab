@@ -6,7 +6,6 @@ from invoke import task
 
 # ================ Configuration ================= #
 
-# Root relative paths to service orchestration folders
 SCRIPTS_DIR: str = "services"
 SERVICES: dict[str, str] = {
     "nextcloud": f"{SCRIPTS_DIR}/nextcloud",
@@ -14,7 +13,6 @@ SERVICES: dict[str, str] = {
     "nginx": f"{SCRIPTS_DIR}/nginx",
 }
 
-# Data folders and external resources
 CALIBRE_DATA_DIR: str = "./services/calibre-web/calibre"
 METADATA_URL: str = (
     "https://github.com/janeczku/calibre-web/raw/master/library/metadata.db"
@@ -94,7 +92,6 @@ def ensure_metadata(c):
 
     if not os.path.exists(db_path):
         print("Action: metadata.db missing. Fetching raw binary from GitHub...")
-        # -L follows redirects, -o defines output path
         c.run(f"curl -L {METADATA_URL} -o {db_path}")
         c.run(f"chmod 777 {db_path}")
         print(f"Success: Valid metadata.db placed in {db_path}")
@@ -132,7 +129,6 @@ def up(c, nextcloud=False, calibre=False, nginx=False, all=False):
 
     ensure_network(c)
 
-    # Determine which services to start
     selected = []
     if nextcloud:
         selected.append("nextcloud")
@@ -141,18 +137,15 @@ def up(c, nextcloud=False, calibre=False, nginx=False, all=False):
     if nginx:
         selected.append("nginx")
 
-    # Default to all if no specific flags are provided
     if all or not selected:
         selected = list(SERVICES.keys())
 
-    # Pre-flight check: Calibre needs the database file to mount correctly
     if "calibre" in selected:
         ensure_metadata(c)
 
     for service in selected:
         run_compose(c, service, "up -d")
 
-    # Feedback for the user
     if "calibre" in selected:
         print("\n[Access] Calibre-Web: http://localhost:8083 (DB Path: /books)")
     if "nextcloud" in selected:
@@ -186,7 +179,6 @@ def down(c, nextcloud=False, calibre=False, nginx=False, all=False):
     if all or not selected:
         selected = list(SERVICES.keys())
 
-    # Reverse order: Stop Apps (NC/Calibre) before Database
     for service in reversed(selected):
         run_compose(c, service, "down")
 
@@ -205,7 +197,6 @@ def scan(c):
     """Force Nextcloud to scan for new files added by Calibre."""
     format_print("Syncing Nextcloud Filesystem")
     print("Action: Scanning 'Livros' folder for changes...")
-    # This assumes your container is named 'nextcloud' as per your YAML
     c.run("docker exec -u 33 nextcloud php occ files:scan user123")
     format_print("Sync Complete")
 
