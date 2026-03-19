@@ -1,4 +1,7 @@
 import os
+
+from textwrap import dedent
+from pathlib import Path
 from invoke import task
 
 # ================ Configuration ================= #
@@ -13,14 +16,63 @@ SERVICES: dict[str, str] = {
 
 # Data folders and external resources
 CALIBRE_DATA_DIR: str = "./services/calibre-web/calibre"
-METADATA_URL: str = "https://github.com/janeczku/calibre-web/raw/master/library/metadata.db"
+METADATA_URL: str = (
+    "https://github.com/janeczku/calibre-web/raw/master/library/metadata.db"
+)
 NETWORK_NAME: str = "homelab_network"
 
 # ================ Helper Functions ================= #
 
-def format_header(message: str):
+
+def format_print(message: str):
     """Print a formatted section header."""
     print(f"\n{'=' * 15} {message} {'=' * 15}")
+
+
+def ensure_file_exists(path: Path, default_content: str = ""):
+    """Create a file if it does not exist."""
+    if not path.exists():
+        print(f"  - Creating missing file: {path}")
+        path.write_text(default_content)
+    else:
+        print(f"  - File already exists: {path}")
+
+
+def ensure_precommit_config() -> None:
+    """Create a minimal .pre-commit-config.yaml if missing."""
+    pre_commit_file: Path = Path(".pre-commit-config.yaml")
+
+    default_config: str = dedent("""
+    repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v6.0.0
+      hooks:
+        - id: trailing-whitespace
+          name: Trim trailing whitespace
+        - id: check-yaml
+          name: Validate YAML
+        - id: check-json
+          name: Validate JSON
+        - id: check-toml
+          name: Validate TOML
+        - id: check-added-large-files
+          name: Validate large files
+
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.12.8
+      hooks:
+        - id: ruff
+          name: Ruff Linter
+          description: "Run 'ruff' for extremely fast Python linting"
+          language: python
+        - id: ruff-format
+          name: Ruff Code Format
+          description: "Run 'ruff format' for extremely fast Python formatting"
+          language: python
+    """)
+
+    ensure_file_exists(pre_commit_file, default_config)
+
 
 def ensure_network(c):
     """Ensure the external docker network exists."""
@@ -31,27 +83,29 @@ def ensure_network(c):
     else:
         print(f"Status: Network '{NETWORK_NAME}' already exists.")
 
+
 def ensure_metadata(c):
     """Downloads a fresh metadata.db if it is missing from the data folder."""
     db_path = os.path.join(CALIBRE_DATA_DIR, "metadata.db")
-    
+
     if not os.path.exists(CALIBRE_DATA_DIR):
         print(f"Action: Creating directory {CALIBRE_DATA_DIR}")
         os.makedirs(CALIBRE_DATA_DIR)
 
     if not os.path.exists(db_path):
-        print(f"Action: metadata.db missing. Fetching raw binary from GitHub...")
+        print("Action: metadata.db missing. Fetching raw binary from GitHub...")
         # -L follows redirects, -o defines output path
         c.run(f"curl -L {METADATA_URL} -o {db_path}")
         c.run(f"chmod 777 {db_path}")
         print(f"Success: Valid metadata.db placed in {db_path}")
     else:
-        print(f"Status: metadata.db already exists. Skipping download.")
+        print("Status: metadata.db already exists. Skipping download.")
+
 
 def run_compose(c, service_alias: str, action: str):
     """Execute docker compose command in the service directory."""
     folder = SERVICES.get(service_alias)
-    
+
     if not folder or not os.path.exists(folder):
         print(f"Error: Directory '{folder}' not found. Check your file structure.")
         return
@@ -60,25 +114,32 @@ def run_compose(c, service_alias: str, action: str):
     with c.cd(folder):
         c.run(f"docker compose {action}")
 
+
 # ================ Tasks ================= #
 
-@task(help={
-    "nextcloud": "Start the Nextcloud service",
-    "calibre": "Start the Calibre-Web service",
-    "nginx": "Start the Nginx service",
-    "all": "Start all services (default)"
-})
+
+@task(
+    help={
+        "nextcloud": "Start the Nextcloud service",
+        "calibre": "Start the Calibre-Web service",
+        "nginx": "Start the Nginx service",
+        "all": "Start all services (default)",
+    }
+)
 def up(c, nextcloud=False, calibre=False, nginx=False, all=False):
     """Start Docker services and auto-prepare requirements."""
-    format_header("Docker Up Task")
-    
+    format_print("Docker Up Task")
+
     ensure_network(c)
 
     # Determine which services to start
     selected = []
-    if nextcloud: selected.append("nextcloud")
-    if calibre: selected.append("calibre")
-    if nginx: selected.append("nginx")
+    if nextcloud:
+        selected.append("nextcloud")
+    if calibre:
+        selected.append("calibre")
+    if nginx:
+        selected.append("nginx")
 
     # Default to all if no specific flags are provided
     if all or not selected:
@@ -99,22 +160,28 @@ def up(c, nextcloud=False, calibre=False, nginx=False, all=False):
     if "nginx" in selected:
         print("[Access] Nginx:   http://localhost:81")
 
-    format_header("Docker Up Done")
+    format_print("Docker Up Done")
 
-@task(help={
-    "nextcloud": "Stop the Nextcloud service",
-    "calibre": "Stop the Calibre-Web service",
-    "nginx": "Stop the Nginx service",
-    "all": "Stop all services (default)"
-})
+
+@task(
+    help={
+        "nextcloud": "Stop the Nextcloud service",
+        "calibre": "Stop the Calibre-Web service",
+        "nginx": "Stop the Nginx service",
+        "all": "Stop all services (default)",
+    }
+)
 def down(c, nextcloud=False, calibre=False, nginx=False, all=False):
     """Stop Docker services modularly."""
-    format_header("Docker Down Task")
+    format_print("Docker Down Task")
 
     selected = []
-    if nextcloud: selected.append("nextcloud")
-    if calibre: selected.append("calibre")
-    if nginx: selected.append("nginx")
+    if nextcloud:
+        selected.append("nextcloud")
+    if calibre:
+        selected.append("calibre")
+    if nginx:
+        selected.append("nginx")
 
     if all or not selected:
         selected = list(SERVICES.keys())
@@ -123,22 +190,25 @@ def down(c, nextcloud=False, calibre=False, nginx=False, all=False):
     for service in reversed(selected):
         run_compose(c, service, "down")
 
-    format_header("Docker Down Done")
+    format_print("Docker Down Done")
+
 
 @task
 def status(c):
     """Check the status of the homelab containers."""
-    format_header("Stack Status")
+    format_print("Stack Status")
     c.run("docker ps --filter 'name=nextcloud|calibre|nginx'")
+
 
 @task
 def scan(c):
     """Force Nextcloud to scan for new files added by Calibre."""
-    format_header("Syncing Nextcloud Filesystem")
+    format_print("Syncing Nextcloud Filesystem")
     print("Action: Scanning 'Livros' folder for changes...")
     # This assumes your container is named 'nextcloud' as per your YAML
     c.run("docker exec -u 33 nextcloud php occ files:scan user123")
-    format_header("Sync Complete")
+    format_print("Sync Complete")
+
 
 @task
 def logs(c, service):
@@ -149,3 +219,42 @@ def logs(c, service):
             c.run("docker compose logs -f")
     else:
         print(f"Error: Service {service} not found.")
+
+
+@task
+def setup(c):
+    """Setup the project environment (git, .env, pre-commit)."""
+    format_print("Setup Task")
+
+    print("→ Checking Git repository...")
+    if not Path(".git").exists():
+        print("  - Initializing Git repository...")
+        c.run("git init")
+    else:
+        print("  - Git already initialized.")
+
+    print("→ Ensuring environment files...")
+
+    ensure_file_exists(Path(".env.template"), default_content="# ENV template\n")
+
+    env_file = Path(".env")
+    env_template = Path(".env.template")
+
+    if not env_file.exists():
+        print("  - Creating .env from .env.template")
+        env_file.write_text(env_template.read_text())
+    else:
+        print("  - .env already exists.")
+
+    print("→ Ensuring .pre-commit-config.yaml exists...")
+    ensure_precommit_config()
+
+    print("→ Installing pre-commit hooks...")
+    c.run("pre-commit clean", warn=True)
+    c.run("pre-commit autoupdate")
+    c.run("pre-commit install")
+
+    print("→ To activate your venv, run: eval $(poetry env activate)")
+
+    format_print("Setup Task Done!")
+    print("\n")
