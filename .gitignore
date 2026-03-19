@@ -10,3 +10,9 @@ test-books/
 # Virtual environment
 venv/
 .venv/
+
+# Ignore all files in the services/nextcloud directory
+services/*
+
+# Allow only the docker-compose.yaml
+!services/*/docker-compose.yaml
