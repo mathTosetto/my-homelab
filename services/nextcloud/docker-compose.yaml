@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mariadb:10.6
+    container_name: nextcloud-db
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: always
+    volumes:
+      - ./nextcloud_db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password_alterar
+      - MYSQL_PASSWORD=user_password_alterar
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+    networks:
+      - homelab_network
+
+  redis:
+    image: redis:alpine
+    container_name: nextcloud-redis
+    restart: always
+    networks:
+      - homelab_network
+
+  nextcloud:
+    image: nextcloud:latest
+    container_name: nextcloud
+    restart: always
+    ports:
+      - 8080:80
+    volumes:
+      - ./nextcloud_data:/var/www/html
+    environment:
+      - MYSQL_PASSWORD=user_password_alterar
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_HOST=db
+      - REDIS_HOST=redis
+    depends_on:
+      - db
+      - redis
+    networks:
+      - homelab_network
+
+networks:
+  homelab_network:
+    external: true

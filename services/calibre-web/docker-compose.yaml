@@ -1,0 +1,21 @@
+services:
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+      - DOCKER_MODS=linuxserver/mods:universal-calibre
+    volumes:
+      - ./config:/config
+      - ./calibre:/books
+    ports:
+      - 8083:8083
+    networks:
+      - homelab_network
+
+networks:
+  homelab_network:
+    external: true
