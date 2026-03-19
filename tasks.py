@@ -36,7 +36,7 @@ def ensure_file_exists(path: Path, default_content: str = ""):
         print(f"  - File already exists: {path}")
 
 
-def ensure_precommit_config() -> None:
+def ensure_precommit_config():
     """Create a minimal .pre-commit-config.yaml if missing."""
     pre_commit_file: Path = Path(".pre-commit-config.yaml")
 
@@ -228,8 +228,8 @@ def setup(c):
 
     ensure_file_exists(Path(".env.template"), default_content="# ENV template\n")
 
-    env_file = Path(".env")
-    env_template = Path(".env.template")
+    env_file: Path = Path(".env")
+    env_template: Path = Path(".env.template")
 
     if not env_file.exists():
         print("  - Creating .env from .env.template")
