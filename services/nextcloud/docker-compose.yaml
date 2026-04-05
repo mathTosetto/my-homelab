@@ -28,7 +28,8 @@ services:
     ports:
       - 8080:80
     volumes:
-      - ./nextcloud_data:/var/www/html
+      - ./data/nextcloud_data:/var/www/html
+      - /Volumes/Elements/homelab/nextcloud/nextcloud_data:/var/www/html/data
     environment:
       - MYSQL_PASSWORD=user_password_alterar
       - MYSQL_DATABASE=nextcloud
