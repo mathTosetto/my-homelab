@@ -1,0 +1,27 @@
+
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+    - id: trailing-whitespace
+      name: Trim trailing whitespace
+    - id: check-yaml
+      name: Validate YAML
+    - id: check-json
+      name: Validate JSON
+    - id: check-toml
+      name: Validate TOML
+    - id: check-added-large-files
+      name: Validate large files
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.15.7
+  hooks:
+    - id: ruff
+      name: Ruff Linter
+      description: "Run 'ruff' for extremely fast Python linting"
+      language: python
+    - id: ruff-format
+      name: Ruff Code Format
+      description: "Run 'ruff format' for extremely fast Python formatting"
+      language: python

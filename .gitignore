@@ -1,0 +1,18 @@
+# test-books
+test-books/
+
+# environment files
+.env
+
+# MacOS files
+.DS_Store
+
+# Virtual environment
+.venv/
+
+# Ignore all files in the services/nextcloud directory
+services/**/*
+
+# Allow only the docker-compose.yaml
+!services/**/
+!services/**/docker-compose.yaml
