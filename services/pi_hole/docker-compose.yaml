@@ -1,0 +1,26 @@
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:2024.07.0
+    hostname: pihole
+    domainname: local
+    restart: always
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8081:80"
+    environment:
+      TZ: UTC
+      FTLCONF_webserver_api_password: admin123
+      FTLCONF_dns_listeningMode: all
+    volumes:
+      - ./data/pihole/etc-pihole:/etc/pihole
+      - ./data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - homelab_network
+
+networks:
+  homelab_network:
+    external: true

@@ -1,0 +1,13 @@
+services:
+  dashboard:
+    build: .
+    container_name: dashboard
+    restart: always
+    ports:
+      - "8888:8888"
+    networks:
+      - homelab_network
+
+networks:
+  homelab_network:
+    external: true

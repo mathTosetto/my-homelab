@@ -1,0 +1,25 @@
+services:
+  gitea:
+    container_name: gitea
+    image: gitea/gitea:1.22.3
+    restart: always
+    ports:
+      - "3000:3000"
+      - "2222:22"
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__server__ROOT_URL=http://gitea.momos
+      - GITEA__server__DOMAIN=gitea.momos
+      - GITEA__server__HTTP_PORT=3000
+    volumes:
+      - ./data:/data
+    dns:
+      - 192.168.0.19
+    networks:
+      - homelab_network
+
+networks:
+  homelab_network:
+    external: true

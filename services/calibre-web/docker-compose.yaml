@@ -2,6 +2,8 @@ services:
   calibre-web-automated:
     image: crocodilestick/calibre-web-automated:latest
     container_name: calibre-web-automated
+    dns:
+      - 192.168.0.19
     environment:
       - PUID=1000
       - PGID=1000
@@ -15,7 +17,9 @@ services:
       - /Volumes/Elements/homelab/calibre-web/library:/calibre-library
     ports:
       - 8083:8083
-    restart: unless-stopped
+    restart: always
+    networks:
+      - homelab_network
 
 networks:
   homelab_network:

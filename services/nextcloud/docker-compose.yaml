@@ -2,6 +2,8 @@ services:
   db:
     image: mariadb:10.6
     container_name: nextcloud-db
+    dns:
+      - 192.168.0.19
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     restart: always
     volumes:
@@ -15,15 +17,19 @@ services:
       - homelab_network
 
   redis:
-    image: redis:alpine
+    image: redis:7.2-alpine
     container_name: nextcloud-redis
+    dns:
+      - 192.168.0.19
     restart: always
     networks:
       - homelab_network
 
   nextcloud:
-    image: nextcloud:latest
+    image: nextcloud:30.0.6
     container_name: nextcloud
+    dns:
+      - 192.168.0.19
     restart: always
     ports:
       - 8080:80
@@ -36,6 +42,7 @@ services:
       - MYSQL_USER=nextcloud
       - MYSQL_HOST=db
       - REDIS_HOST=redis
+      - APACHE_SERVER_NAME=nextcloud.momos
     depends_on:
       - db
       - redis

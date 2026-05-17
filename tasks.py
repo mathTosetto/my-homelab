@@ -11,6 +11,12 @@ SERVICES: dict[str, str] = {
     "nextcloud": f"{SCRIPTS_DIR}/nextcloud",
     "calibre": f"{SCRIPTS_DIR}/calibre-web",
     "npm": f"{SCRIPTS_DIR}/npm",
+    "pi_hole": f"{SCRIPTS_DIR}/pi_hole",
+    "immich": f"{SCRIPTS_DIR}/immich",
+    "gitea": f"{SCRIPTS_DIR}/gitea",
+    "uptime_kuma": f"{SCRIPTS_DIR}/uptime-kuma",
+    "portainer": f"{SCRIPTS_DIR}/portainer",
+    "dashboard": f"{SCRIPTS_DIR}/dashboard",
 }
 
 CALIBRE_DATA_DIR: str = "./services/calibre-web/calibre"
@@ -120,10 +126,30 @@ def run_compose(c, service_alias: str, action: str):
         "nextcloud": "Start the Nextcloud service",
         "calibre": "Start the Calibre-Web service",
         "npm": "Start the npm service",
+        "pi_hole": "Start the Pi-hole service",
+        "immich": "Start the Immich service",
+        "gitea": "Start the Gitea service",
+        "uptime_kuma": "Start the Uptime Kuma service",
+        "portainer": "Start the Portainer service",
+        "dashboard": "Start the Dashboard service",
         "all": "Start all services (default)",
+        "build": "Force rebuild of images before starting",
     }
 )
-def up(c, nextcloud=False, calibre=False, npm=False, all=False):
+def up(
+    c,
+    nextcloud=False,
+    calibre=False,
+    npm=False,
+    pi_hole=False,
+    immich=False,
+    gitea=False,
+    uptime_kuma=False,
+    portainer=False,
+    dashboard=False,
+    all=False,
+    build=False,
+):
     """Start Docker services and auto-prepare requirements."""
     format_print("Docker Up Task")
 
@@ -136,6 +162,18 @@ def up(c, nextcloud=False, calibre=False, npm=False, all=False):
         selected.append("calibre")
     if npm:
         selected.append("npm")
+    if pi_hole:
+        selected.append("pi_hole")
+    if immich:
+        selected.append("immich")
+    if gitea:
+        selected.append("gitea")
+    if uptime_kuma:
+        selected.append("uptime_kuma")
+    if portainer:
+        selected.append("portainer")
+    if dashboard:
+        selected.append("dashboard")
 
     if all or not selected:
         selected = list(SERVICES.keys())
@@ -143,8 +181,9 @@ def up(c, nextcloud=False, calibre=False, npm=False, all=False):
     # if "calibre" in selected:
     #     ensure_metadata(c)
 
+    compose_up = "up -d --build" if build else "up -d"
     for service in selected:
-        run_compose(c, service, "up -d")
+        run_compose(c, service, compose_up)
 
     if "calibre" in selected:
         print("\n[Access] Calibre-Web: http://localhost:8083 (DB Path: /books)")
@@ -152,6 +191,18 @@ def up(c, nextcloud=False, calibre=False, npm=False, all=False):
         print("[Access] Nextcloud:   http://localhost:8080")
     if "npm" in selected:
         print("[Access] npm:   http://localhost:81")
+    if "pi_hole" in selected:
+        print("[Access] Pi-hole:     http://localhost:8081")
+    if "immich" in selected:
+        print("[Access] Immich:        http://localhost:2283")
+    if "gitea" in selected:
+        print("[Access] Gitea:         http://localhost:3000")
+    if "uptime_kuma" in selected:
+        print("[Access] Uptime Kuma:   http://localhost:3001")
+    if "portainer" in selected:
+        print("[Access] Portainer:     http://localhost:9000")
+    if "dashboard" in selected:
+        print("[Access] Dashboard:     http://localhost:8888")
 
     format_print("Docker Up Done")
 
@@ -161,10 +212,24 @@ def up(c, nextcloud=False, calibre=False, npm=False, all=False):
         "nextcloud": "Stop the Nextcloud service",
         "calibre": "Stop the Calibre-Web service",
         "npm": "Stop the npm service",
+        "pi_hole": "Stop the Pi-hole service",
+        "dashboard": "Stop the Dashboard service",
         "all": "Stop all services (default)",
     }
 )
-def down(c, nextcloud=False, calibre=False, npm=False, all=False):
+def down(
+    c,
+    nextcloud=False,
+    calibre=False,
+    npm=False,
+    pi_hole=False,
+    immich=False,
+    gitea=False,
+    uptime_kuma=False,
+    portainer=False,
+    dashboard=False,
+    all=False,
+):
     """Stop Docker services modularly."""
     format_print("Docker Down Task")
 
@@ -175,6 +240,18 @@ def down(c, nextcloud=False, calibre=False, npm=False, all=False):
         selected.append("calibre")
     if npm:
         selected.append("npm")
+    if pi_hole:
+        selected.append("pi_hole")
+    if immich:
+        selected.append("immich")
+    if gitea:
+        selected.append("gitea")
+    if uptime_kuma:
+        selected.append("uptime_kuma")
+    if portainer:
+        selected.append("portainer")
+    if dashboard:
+        selected.append("dashboard")
 
     if all or not selected:
         selected = list(SERVICES.keys())
@@ -189,7 +266,9 @@ def down(c, nextcloud=False, calibre=False, npm=False, all=False):
 def status(c):
     """Check the status of the homelab containers."""
     format_print("Stack Status")
-    c.run("docker ps --filter 'name=nextcloud|calibre|npm'")
+    c.run(
+        "docker ps --filter 'name=nextcloud|calibre|npm|pihole|immich|gitea|uptime-kuma|portainer|dashboard'"
+    )
 
 
 @task
@@ -245,7 +324,7 @@ def setup(c):
     c.run("pre-commit autoupdate")
     c.run("pre-commit install")
 
-    print("→ To activate your venv, run: eval $(poetry env activate)")
+    print("→ To activate your venv, run: source .venv/bin/activate")
 
     format_print("Setup Task Done!")
     print("\n")
